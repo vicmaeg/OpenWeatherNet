@@ -1,8 +1,9 @@
-﻿using System;
+﻿using OpenWeatherNet.Interfaces;
 
 namespace OpenWeatherNet
 {
-    public class WeatherClient
+    public class WeatherClient : IWeatherClient
     {
+        public WeatherClientSettings Settings { get; set; }
     }
 }
