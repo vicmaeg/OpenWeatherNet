@@ -5,4 +5,7 @@
     <TargetFramework>netcoreapp1.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OpenWeatherNet\OpenWeatherNet.csproj" />
+  </ItemGroup>
 </Project>
