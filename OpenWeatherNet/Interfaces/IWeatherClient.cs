@@ -7,5 +7,7 @@ namespace OpenWeatherNet.Interfaces
     public interface IWeatherClient
     {
         WeatherClientSettings Settings { get; set; }
+        ICurrentWeatherClient Current { get; }
+        IForecastClient Forecast { get; }
     }
 }
