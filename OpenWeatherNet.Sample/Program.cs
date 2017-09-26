@@ -1,5 +1,4 @@
-﻿using OpenWeatherNet;
-using System;
+﻿using System;
 
 namespace OpenWeatherNet.Sample
 {

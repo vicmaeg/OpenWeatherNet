@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenWeatherNet\OpenWeatherNet.csproj" />
+    <ProjectReference Include="..\OpenWeatherNet.NetStandard\OpenWeatherNet.NetStandard.csproj" />
   </ItemGroup>
 </Project>
