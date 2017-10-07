@@ -2,6 +2,10 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Generic;
+using System.Text;
+using System.Globalization;
+using System.Collections;
 
 namespace OpenWeatherNet.Common
 {
@@ -16,16 +20,19 @@ namespace OpenWeatherNet.Common
             this.settings = settings;
         }
 
-        protected abstract string ParamURL { get;}
+        protected abstract string ParamURL { get; }
 
         protected Task<T> GetByName<T>(string cityName, CancellationToken token)
         {
-            var url = $"http://{settings.BaseURL}{settings.Version}/{ParamURL}?q={cityName}&appid={settings.AppId}";
-            return ExecuteGetAsync<T>(url, token);
+            Dictionary<string, object> parameters = new Dictionary<string, object> ();
+            parameters.Add("q",cityName);
+
+            return ExecuteGetAsync<T> (parameters, token);
         }
 
-        protected async Task<T> ExecuteGetAsync<T> (string url, CancellationToken token)
+        protected async Task<T> ExecuteGetAsync<T> (IDictionary<string,object> queryParameters, CancellationToken token)
         {
+            var url = CreateURL(queryParameters);
             var response = await GetAsync(url, token);
             //Determine a Response Action based on Settings
             if (response != null)
@@ -51,5 +58,51 @@ namespace OpenWeatherNet.Common
                 return new ClientResponse(null, ex);
             }
         }
+
+        protected virtual string CreateURL (IDictionary<string,object> queryParameters)
+        {
+			var resourceBuilder = new StringBuilder();
+			resourceBuilder
+				.Append("http://")
+				.Append(settings.BaseURL)
+                .Append("/")
+                .Append(settings.Version)
+                .Append("/")
+                .Append(ParamURL);
+
+            var querySeparator = ParamURL.Contains("?") ? "&" : "?";
+			if (queryParameters != null)
+			{
+				foreach (var kvp in queryParameters)
+				{
+					if (!(kvp.Value is string) && kvp.Value is IEnumerable enumerable)
+					{
+						foreach (var value in enumerable)
+							AppendQueryValue(resourceBuilder, kvp.Key, value, ref querySeparator);
+					}
+					else
+					{
+						AppendQueryValue(resourceBuilder, kvp.Key, kvp.Value, ref querySeparator);
+					}
+				}
+			}
+            //Always add the appid query parameter at the end
+            AppendQueryValue(resourceBuilder, "appid", settings.AppId, ref querySeparator);
+
+            return resourceBuilder.ToString();
+		}
+
+		protected void AppendQueryValue(StringBuilder builder, string key, object value, ref string querySeparator)
+		{
+			if (value is Enum)
+				value = (int)value;
+
+			builder
+				.Append(querySeparator)
+				.Append(key)
+				.Append("=")
+				.Append(Uri.EscapeDataString(Convert.ToString(value, CultureInfo.InvariantCulture)));
+			querySeparator = "&";
+		}
     }
 }

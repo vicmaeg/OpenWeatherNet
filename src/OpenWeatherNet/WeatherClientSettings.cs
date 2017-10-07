@@ -10,6 +10,6 @@ namespace OpenWeatherNet
         }
         public string AppId { get; }
         public string Version { get; set; } = "2.5";
-        public string BaseURL { get; set; } = "api.openweathermap.org/data/";
+        public string BaseURL { get; set; } = "api.openweathermap.org/data";
     }
 }
