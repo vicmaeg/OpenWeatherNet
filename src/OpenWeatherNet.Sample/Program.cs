@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace OpenWeatherNet.Sample
 {
@@ -6,8 +7,15 @@ namespace OpenWeatherNet.Sample
     {
         static void Main(string[] args)
         {
-            WeatherClient client = new WeatherClient("");
-            var weather = client.Current.GetByName("London").Result;
+            string apiKey = null;
+
+            using (StreamReader sr = File.OpenText("ApiKey.txt"))
+            {
+                apiKey = sr.ReadLine();
+                //you then have to process the string
+            }
+            WeatherClient client = new WeatherClient(apiKey);
+            var weather = client.Current.GetByName("Barcelona").Result;
             Console.WriteLine(weather);
         }
     }
