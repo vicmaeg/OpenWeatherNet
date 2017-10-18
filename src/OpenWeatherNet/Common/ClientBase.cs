@@ -1,11 +1,12 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Collections.Generic;
-using System.Text;
-using System.Globalization;
+﻿using OpenWeatherNet.Model;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Net.Http;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OpenWeatherNet.Common
 {
@@ -22,12 +23,49 @@ namespace OpenWeatherNet.Common
 
         protected abstract string ParamURL { get; }
 
-        protected Task<T> GetByName<T>(string cityName, CancellationToken token)
+        protected Task<T> GetByName<T>(string cityName, Units units, Language language,
+            CancellationToken token = default(CancellationToken))
         {
             Dictionary<string, object> parameters = new Dictionary<string, object> ();
-            parameters.Add("q",cityName);
+            parameters.Add("q", cityName);
+            parameters.Add("units", units);
+            parameters.Add("lang", language);
 
             return ExecuteGetAsync<T> (parameters, token);
+        }
+
+        protected Task<T> GetByCoords<T>(Coord coords, Units units, Language language,
+            CancellationToken token = default(CancellationToken))
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("lat", coords.Lat);
+            parameters.Add("lon", coords.Lon);
+            parameters.Add("units", units);
+            parameters.Add("lang", language);
+
+            return ExecuteGetAsync<T>(parameters, token);
+        }
+
+        protected Task<T> GetByID<T>(int cityID, Units units, Language language,
+            CancellationToken token = default(CancellationToken))
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("id", cityID);
+            parameters.Add("units", units);
+            parameters.Add("lang", language);
+
+            return ExecuteGetAsync<T>(parameters, token);
+        }
+
+        protected Task<T> GetByZip<T>(string zipCode, string countryCode, Units units, Language language,
+           CancellationToken token = default(CancellationToken))
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("zip", $"{zipCode},{countryCode}");
+            parameters.Add("units", units);
+            parameters.Add("lang", language);
+
+            return ExecuteGetAsync<T>(parameters, token);
         }
 
         protected async Task<T> ExecuteGetAsync<T> (IDictionary<string,object> queryParameters, CancellationToken token)
@@ -95,7 +133,7 @@ namespace OpenWeatherNet.Common
 		protected void AppendQueryValue(StringBuilder builder, string key, object value, ref string querySeparator)
 		{
 			if (value is Enum)
-				value = (int)value;
+				value = value.ToString().ToLower();
 
 			builder
 				.Append(querySeparator)
