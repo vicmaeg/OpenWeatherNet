@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\ClientBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\ClientResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\Converter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\ExtensionMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CurrentWeatherClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ICurrentWeatherClient.cs" />
