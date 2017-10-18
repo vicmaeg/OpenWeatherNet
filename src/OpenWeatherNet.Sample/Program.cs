@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenWeatherNet.Common;
+using System;
 using System.IO;
 
 namespace OpenWeatherNet.Sample
@@ -16,7 +17,7 @@ namespace OpenWeatherNet.Sample
                 //you then have to process the string
             }
             WeatherClient client = new WeatherClient(apiKey);
-            var weather = client.Current.GetByName("Barcelona").Result;
+            var weather = client.Current.GetByZip("08014","es", Units.Metric, Language.ES).Result;
             if (weather.Cod == 200)
             {
                 Console.WriteLine($"City Name: {weather.Name}");
@@ -30,6 +31,9 @@ namespace OpenWeatherNet.Sample
             } else {
                 Console.WriteLine("Error obtaining Weather!");
             }
+
+            Console.WriteLine("Press Enter to exit");
+            Console.Read();
         }
     }
 }
