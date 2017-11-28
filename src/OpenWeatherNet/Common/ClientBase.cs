@@ -72,12 +72,11 @@ namespace OpenWeatherNet.Common
         {
             var url = CreateURL(queryParameters);
             var response = await GetAsync(url, token);
-            //Determine a Response Action based on Settings
-            if (response != null)
-            {
-                return await response.Response.Content.ReadAsAsync<T>();
+            if (response == null) {
+                return default(T);
             }
-            return default(T);
+            //Determine a Response Action based on Settings
+            return await response.Response.Content.ReadAsAsync<T>();
         }
 
         protected async Task<ClientResponse> GetAsync(string url, CancellationToken token)
@@ -96,6 +95,18 @@ namespace OpenWeatherNet.Common
                 return new ClientResponse(null, ex);
             }
         }
+
+        ResponseAction DetermineResponseAction (ClientResponse response, CancellationToken token)
+        {
+            if (response.TimedOut) {
+                if (settings.ThrowOnError) {
+                    //throw new RestException();
+                }
+                return ResponseAction.ReturnDefault;
+            }
+            return ResponseAction.Return;
+        }
+
 
         protected virtual string CreateURL (IDictionary<string,object> queryParameters)
         {

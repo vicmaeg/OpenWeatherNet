@@ -48,5 +48,10 @@ namespace OpenWeatherNet.Common
         ZH_TW
     }
 
+    public enum ResponseAction
+    {
+        Return,
+        ReturnDefault
+    }
 
 }
