@@ -8,24 +8,25 @@ namespace OpenWeatherNet
     {
         HttpClient httpClient;
 
-        public WeatherClient (string appID) : this (new WeatherClientSettings(appID))
+        ICurrentWeatherClient currentWeatherClient;
+        IForecastClient forecastClient;
+
+        public WeatherClient (string appID) : this (new WeatherClientSettings (appID))
         {
         }
 
-        public WeatherClient(WeatherClientSettings settings)
+        public WeatherClient (WeatherClientSettings settings)
         {
             Settings = settings;
             httpClient = new HttpClient ();
+            currentWeatherClient = new CurrentWeatherClient (httpClient, Settings);
+            forecastClient = new ForecastClient (httpClient, Settings);
         }
 
         public WeatherClientSettings Settings { get; }
 
-        public virtual ICurrentWeatherClient Current =>
-            new CurrentWeatherClient(httpClient, Settings);
+        public virtual ICurrentWeatherClient Current => currentWeatherClient;
 
-        public virtual IForecastClient Forecast => throw new NotImplementedException();
-
-        
-
+        public virtual IForecastClient Forecast => forecastClient;
     }
 }
