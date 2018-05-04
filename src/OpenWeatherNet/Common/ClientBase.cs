@@ -91,7 +91,14 @@ namespace OpenWeatherNet.Common
                     var time = settings.TimeBetweenRetries;
                     if (settings.ExponentialBackoffInRetries)
                     {
-                        time = TimeSpan.FromSeconds (Math.Pow (time.TotalSeconds, retryAttempt));
+                        if (time.TotalSeconds <= 1)
+                        {
+                            time = TimeSpan.FromSeconds (retryAttempt);
+                        }
+                        else
+                        {
+                            time = TimeSpan.FromSeconds (Math.Pow (time.TotalSeconds, retryAttempt));
+                        }
                     }
                     return time;
                 })
