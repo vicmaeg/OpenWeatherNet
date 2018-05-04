@@ -13,7 +13,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\ClientResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\Converter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\Enums.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Common\Exceptions\RequestTimeoutException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\ExtensionMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CurrentWeatherClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForecastClient.cs" />

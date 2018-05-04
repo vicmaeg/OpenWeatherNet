@@ -1,8 +1,11 @@
 ﻿using OpenWeatherNet.Model;
+using Polly;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -14,8 +17,15 @@ namespace OpenWeatherNet.Common
     {
         HttpClient client;
         WeatherClientSettings settings;
+        HttpStatusCode[] httpStatusCodesWorthRetrying = {
+            HttpStatusCode.RequestTimeout, // 408
+            HttpStatusCode.InternalServerError, // 500
+            HttpStatusCode.BadGateway, // 502
+            HttpStatusCode.ServiceUnavailable, // 503
+            HttpStatusCode.GatewayTimeout // 504
+        };
 
-        protected ClientBase(HttpClient client, WeatherClientSettings settings)
+        protected ClientBase (HttpClient client, WeatherClientSettings settings)
         {
             this.client = client;
             this.settings = settings;
@@ -23,135 +33,127 @@ namespace OpenWeatherNet.Common
 
         protected abstract string ParamURL { get; }
 
-        protected Task<T> GetByName<T>(string cityName, Units units, Language language,
-            CancellationToken token = default(CancellationToken))
+        protected Task<T> GetByName<T> (string cityName, Units units, Language language,
+            CancellationToken token = default (CancellationToken))
         {
             Dictionary<string, object> parameters = new Dictionary<string, object> ();
-            parameters.Add("q", cityName);
-            parameters.Add("units", units);
-            parameters.Add("lang", language);
+            parameters.Add ("q", cityName);
+            parameters.Add ("units", units);
+            parameters.Add ("lang", language);
 
             return ExecuteGetAsync<T> (parameters, token);
         }
 
-        protected Task<T> GetByCoords<T>(Coord coords, Units units, Language language,
-            CancellationToken token = default(CancellationToken))
+        protected Task<T> GetByCoords<T> (Coord coords, Units units, Language language,
+            CancellationToken token = default (CancellationToken))
         {
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("lat", coords.Lat);
-            parameters.Add("lon", coords.Lon);
-            parameters.Add("units", units);
-            parameters.Add("lang", language);
+            Dictionary<string, object> parameters = new Dictionary<string, object> ();
+            parameters.Add ("lat", coords.Lat);
+            parameters.Add ("lon", coords.Lon);
+            parameters.Add ("units", units);
+            parameters.Add ("lang", language);
 
-            return ExecuteGetAsync<T>(parameters, token);
+            return ExecuteGetAsync<T> (parameters, token);
         }
 
-        protected Task<T> GetByID<T>(int cityID, Units units, Language language,
-            CancellationToken token = default(CancellationToken))
+        protected Task<T> GetByID<T> (int cityID, Units units, Language language,
+            CancellationToken token = default (CancellationToken))
         {
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("id", cityID);
-            parameters.Add("units", units);
-            parameters.Add("lang", language);
+            Dictionary<string, object> parameters = new Dictionary<string, object> ();
+            parameters.Add ("id", cityID);
+            parameters.Add ("units", units);
+            parameters.Add ("lang", language);
 
-            return ExecuteGetAsync<T>(parameters, token);
+            return ExecuteGetAsync<T> (parameters, token);
         }
 
-        protected Task<T> GetByZip<T>(string zipCode, string countryCode, Units units, Language language,
-           CancellationToken token = default(CancellationToken))
+        protected Task<T> GetByZip<T> (string zipCode, string countryCode, Units units, Language language,
+           CancellationToken token = default (CancellationToken))
         {
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("zip", $"{zipCode},{countryCode}");
-            parameters.Add("units", units);
-            parameters.Add("lang", language);
+            Dictionary<string, object> parameters = new Dictionary<string, object> ();
+            parameters.Add ("zip", $"{zipCode},{countryCode}");
+            parameters.Add ("units", units);
+            parameters.Add ("lang", language);
 
-            return ExecuteGetAsync<T>(parameters, token);
+            return ExecuteGetAsync<T> (parameters, token);
         }
 
-        protected async Task<T> ExecuteGetAsync<T> (IDictionary<string,object> queryParameters, CancellationToken token)
+        protected async Task<T> ExecuteGetAsync<T> (IDictionary<string, object> queryParameters, CancellationToken token)
         {
-            var url = CreateURL(queryParameters);
-            var response = await GetAsync(url, token);
-            if (response == null) {
-                return default(T);
-            }
-            //Determine a Response Action based on Settings
-            return await response.Response.Content.ReadAsAsync<T>();
-        }
+            var url = CreateURL (queryParameters);
 
-        protected async Task<ClientResponse> GetAsync(string url, CancellationToken token)
-        {
-            try
+            var response = await Policy
+                .Handle<HttpRequestException> ()
+                .OrResult<HttpResponseMessage> (r => httpStatusCodesWorthRetrying.Contains (r.StatusCode))
+                .WaitAndRetryAsync (settings.Retries,
+                                 retryAttempt =>
+                {
+                    var time = settings.TimeBetweenRetries;
+                    if (settings.ExponentialBackoffInRetries)
+                    {
+                        time = TimeSpan.FromSeconds (Math.Pow (time.TotalSeconds, retryAttempt));
+                    }
+                    return time;
+                })
+                .ExecuteAsync (() => client.GetAsync (url, token));
+
+            if (response.IsSuccessStatusCode)
             {
-                var response = await client.GetAsync(url, token);
-                return new ClientResponse(response);
+                return await response.Content.ReadAsAsync<T> ();
             }
-            catch (TaskCanceledException ex)
+
+            if (settings.ThrowOnError)
             {
-                return new ClientResponse(null, ex, true);
+                response.EnsureSuccessStatusCode ();
             }
-            catch (Exception ex)
-            {
-                return new ClientResponse(null, ex);
-            }
+
+            return default (T);
         }
 
-        ResponseAction DetermineResponseAction (ClientResponse response, CancellationToken token)
+        protected virtual string CreateURL (IDictionary<string, object> queryParameters)
         {
-            if (response.TimedOut) {
-                if (settings.ThrowOnError) {
-                    //throw new RestException();
+            var resourceBuilder = new StringBuilder ();
+            resourceBuilder
+                .Append ("http://")
+                .Append (settings.BaseURL)
+                .Append ("/")
+                .Append (settings.Version)
+                .Append ("/")
+                .Append (ParamURL);
+
+            var querySeparator = ParamURL.Contains ("?") ? "&" : "?";
+            if (queryParameters != null)
+            {
+                foreach (var kvp in queryParameters)
+                {
+                    if (!(kvp.Value is string) && kvp.Value is IEnumerable enumerable)
+                    {
+                        foreach (var value in enumerable)
+                            AppendQueryValue (resourceBuilder, kvp.Key, value, ref querySeparator);
+                    }
+                    else
+                    {
+                        AppendQueryValue (resourceBuilder, kvp.Key, kvp.Value, ref querySeparator);
+                    }
                 }
-                return ResponseAction.ReturnDefault;
             }
-            return ResponseAction.Return;
+            //Always add the appid query parameter at the end
+            AppendQueryValue (resourceBuilder, "appid", settings.AppId, ref querySeparator);
+
+            return resourceBuilder.ToString ();
         }
 
-
-        protected virtual string CreateURL (IDictionary<string,object> queryParameters)
+        protected void AppendQueryValue (StringBuilder builder, string key, object value, ref string querySeparator)
         {
-			var resourceBuilder = new StringBuilder();
-			resourceBuilder
-				.Append("http://")
-				.Append(settings.BaseURL)
-                .Append("/")
-                .Append(settings.Version)
-                .Append("/")
-                .Append(ParamURL);
+            if (value is Enum)
+                value = value.ToString ().ToLower ();
 
-            var querySeparator = ParamURL.Contains("?") ? "&" : "?";
-			if (queryParameters != null)
-			{
-				foreach (var kvp in queryParameters)
-				{
-					if (!(kvp.Value is string) && kvp.Value is IEnumerable enumerable)
-					{
-						foreach (var value in enumerable)
-							AppendQueryValue(resourceBuilder, kvp.Key, value, ref querySeparator);
-					}
-					else
-					{
-						AppendQueryValue(resourceBuilder, kvp.Key, kvp.Value, ref querySeparator);
-					}
-				}
-			}
-            //Always add the appid query parameter at the end
-            AppendQueryValue(resourceBuilder, "appid", settings.AppId, ref querySeparator);
-
-            return resourceBuilder.ToString();
-		}
-
-		protected void AppendQueryValue(StringBuilder builder, string key, object value, ref string querySeparator)
-		{
-			if (value is Enum)
-				value = value.ToString().ToLower();
-
-			builder
-				.Append(querySeparator)
-				.Append(key)
-				.Append("=")
-				.Append(Uri.EscapeDataString(Convert.ToString(value, CultureInfo.InvariantCulture)));
-			querySeparator = "&";
-		}
+            builder
+                .Append (querySeparator)
+                .Append (key)
+                .Append ("=")
+                .Append (Uri.EscapeDataString (Convert.ToString (value, CultureInfo.InvariantCulture)));
+            querySeparator = "&";
+        }
     }
 }
