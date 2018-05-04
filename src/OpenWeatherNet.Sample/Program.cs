@@ -16,8 +16,8 @@ namespace OpenWeatherNet.Sample
                 apiKey = sr.ReadLine ();
             }
             WeatherClient client = new WeatherClient (apiKey);
-            var weather = client.Current.GetByZip ("08014", "es", Units.Metric, Language.ES).Result;
-            if (weather.Cod == 200)
+            var weather = client.Current.GetByName ("Barcelona", Units.Metric, Language.ES).Result;
+            if (!(weather is null))
             {
                 Console.WriteLine ($"City Name: {weather.Name}");
                 Console.WriteLine ($"Coords: lat={weather.Coord.Lat}, lon={weather.Coord.Lon}");
@@ -30,7 +30,7 @@ namespace OpenWeatherNet.Sample
             }
             else
             {
-                Console.WriteLine ($"Error obtaining Weather! Code: {weather.Cod}");
+                Console.WriteLine ($"Error obtaining Weather!");
             }
 
             Console.WriteLine ("Press Enter to exit");

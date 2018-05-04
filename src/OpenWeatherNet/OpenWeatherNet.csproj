@@ -9,5 +9,9 @@
     <PackageReference Include="Polly" Version="5.8.0" />
   </ItemGroup>
 
-  <Import Project="..\OpenWeatherNet\OpenWeatherNet.projitems" Label="Shared" />
+  <ItemGroup>
+    <Folder Include="Model\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Common\" />
+  </ItemGroup>
 </Project>
