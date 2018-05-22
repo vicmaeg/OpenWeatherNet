@@ -123,7 +123,7 @@ namespace OpenWeatherNet.Tests
 			Assert.IsNull (weather);
 			//one of the actual request and 2 for the retries
 			Assert.AreEqual (3, timesTried);
-			Assert.GreaterOrEqual (stopwatch.Elapsed, TimeSpan.FromSeconds (4));
+			Assert.GreaterOrEqual (stopwatch.Elapsed, TimeSpan.FromSeconds (3));
 			Assert.Less (stopwatch.Elapsed, TimeSpan.FromSeconds (5));
 		}
 
@@ -153,7 +153,7 @@ namespace OpenWeatherNet.Tests
 			Assert.IsNull (weather);
 			//one of the actual request and 2 for the retries
 			Assert.AreEqual (3, timesTried);
-			Assert.GreaterOrEqual (stopwatch.Elapsed.Ticks, TimeSpan.FromSeconds (6).Ticks);
+			Assert.Greater (stopwatch.Elapsed, TimeSpan.FromSeconds (5));
 		}
 
 		[Test]

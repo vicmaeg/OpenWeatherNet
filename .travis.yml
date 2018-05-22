@@ -6,4 +6,5 @@ script:
  - cd src
  - dotnet restore
  - dotnet build
+ - cd OpenWeatherNet.Tests
  - dotnet test
