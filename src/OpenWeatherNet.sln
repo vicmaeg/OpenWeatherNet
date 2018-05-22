@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenWeatherNet.Sample", "Op
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenWeatherNet", "OpenWeatherNet\OpenWeatherNet.csproj", "{5D14B567-AB3F-488D-AAF6-7E87092E48CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenWeatherNet.Tests", "OpenWeatherNet.Tests\OpenWeatherNet.Tests.csproj", "{9EE59E64-BEB5-4616-9B74-429954DE2A1F}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		OpenWeatherNet\OpenWeatherNet.projitems*{6693cab6-774a-4467-bd23-f521fa558195}*SharedItemsImports = 13
@@ -24,6 +26,10 @@ Global
 		{5D14B567-AB3F-488D-AAF6-7E87092E48CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D14B567-AB3F-488D-AAF6-7E87092E48CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D14B567-AB3F-488D-AAF6-7E87092E48CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EE59E64-BEB5-4616-9B74-429954DE2A1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EE59E64-BEB5-4616-9B74-429954DE2A1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EE59E64-BEB5-4616-9B74-429954DE2A1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EE59E64-BEB5-4616-9B74-429954DE2A1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
