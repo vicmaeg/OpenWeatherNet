@@ -4,29 +4,39 @@ using System.Net.Http;
 
 namespace OpenWeatherNet
 {
-    public class WeatherClient : IWeatherClient
-    {
-        HttpClient httpClient;
+	/// <summary>
+	/// Weather client. Implements <see cref="IWeatherClient"/>, has different
+	/// constructors depending on what level of control you want on the WeatherClient
+	/// Then you can obtain the <see cref="ICurrentWeatherClient"/> and <see cref="IForecastClient"/>
+	/// in order to do api calls.
+	/// </summary>
+	public class WeatherClient : IWeatherClient
+	{
+		HttpClient httpClient;
 
-        ICurrentWeatherClient currentWeatherClient;
-        IForecastClient forecastClient;
+		readonly ICurrentWeatherClient currentWeatherClient;
+		readonly IForecastClient forecastClient;
 
-        public WeatherClient (string appID) : this (new WeatherClientSettings (appID))
-        {
-        }
+		public WeatherClient (string appID) : this (new WeatherClientSettings (appID))
+		{
+		}
 
-        public WeatherClient (WeatherClientSettings settings)
-        {
-            Settings = settings;
-            httpClient = new HttpClient ();
-            currentWeatherClient = new CurrentWeatherClient (httpClient, Settings);
-            forecastClient = new ForecastClient (httpClient, Settings);
-        }
+		public WeatherClient (WeatherClientSettings settings) : this (settings, new HttpClient ())
+		{
+		}
 
-        public WeatherClientSettings Settings { get; }
+		public WeatherClient (WeatherClientSettings settings, HttpClient client)
+		{
+			Settings = settings;
+			httpClient = client;
+			currentWeatherClient = new CurrentWeatherClient (httpClient, Settings);
+			forecastClient = new ForecastClient (httpClient, Settings);
+		}
 
-        public virtual ICurrentWeatherClient Current => currentWeatherClient;
+		public WeatherClientSettings Settings { get; }
 
-        public virtual IForecastClient Forecast => forecastClient;
-    }
+		public virtual ICurrentWeatherClient Current => currentWeatherClient;
+
+		public virtual IForecastClient Forecast => forecastClient;
+	}
 }
