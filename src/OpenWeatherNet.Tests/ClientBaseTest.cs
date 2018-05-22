@@ -33,7 +33,7 @@ namespace OpenWeatherNet.Tests
 				return Task.FromResult (response);
 			});
 
-			Assert.Throws<HttpRequestException> (async () => await client.GetByName ("Barcelona"));
+			Assert.ThrowsAsync<HttpRequestException> (async () => await client.GetByName ("Barcelona"));
 		}
 
 		[Test]
@@ -50,7 +50,7 @@ namespace OpenWeatherNet.Tests
 
 
 			CurrentWeather weather = new CurrentWeather ();
-			Assert.DoesNotThrow (async () => weather = await client.GetByName ("Barcelona"));
+			Assert.DoesNotThrowAsync (async () => weather = await client.GetByName ("Barcelona"));
 			Assert.IsNull (weather);
 		}
 
